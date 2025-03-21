@@ -62,13 +62,22 @@ function handleCatFileCommand(){
 function handleHashCommand(){
     const filePath= args[2];
 
-    const flag=args[1].slice(1).split("").join("");
+    console.log("file:", filePath);
+
+    const flag=args[1];
+
+    console.log("Flag:", flag);
+
+    if(!filePath){
+        throw new Error(`Error: No file specified.`);
+    }
 
     if(! fs.existsSync(filePath)){
         throw new Error(
-            `could not open ${args[2]}`
+            "could not open file path"
         );
     }
+
     const readingContents=fs.readFileSync(filePath);
 
     const fileLength=readingContents.length;
@@ -79,14 +88,14 @@ function handleHashCommand(){
 
     const hash= crypto.createHash("sha1").update(blob).digest('hex');
 
-    if(flag && flag==='-w'){
+    if(flag==='-w'){
         const folder=hash.slice(0,2);
         const file=hash.slice(2);
 
-        const completeFolderPath= path.join(process.cwd(), '.git', 'objects', folder);
+        const completeFolderPath= path.join(process.cwd(), ".git", "objects", folder);
 
         if(!fs.existsSync(completeFolderPath)){
-            fs.mkdirSync(completeFolderPath);
+            fs.mkdirSync(completeFolderPath, {recursive:true});
         }
 
         const compressedData=zlib.deflateSync(blob);
