@@ -3,11 +3,14 @@
   "description": "Build your own Git challenge, from CodeCrafters",
   "type": "module",
   "scripts": {
-    "dev": "tsx app/main.ts"
+    "dev": "tsx watch app/main.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "^22.13.10",
     "tsx": "^4.19.3"
+  },
+  "dependencies": {
+    "crypto": "^1.0.1"
   }
 }

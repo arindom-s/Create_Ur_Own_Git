@@ -1,6 +1,8 @@
 import * as fs from 'fs';
-
+import { read } from 'node:fs';
+import * as crypto from "crypto"
 import path from 'node:path';
+import { blob } from 'node:stream/consumers';
 import zlib from 'node:zlib';
 const args = process.argv.slice(2);
 const command = args[0];
@@ -11,7 +13,8 @@ const command = args[0];
 
 enum Commands {
     Init = "init",
-    Cat = "cat-file"
+    Cat = "cat-file",
+    Hash= "hash-object"
 }
 
 switch (command) {
@@ -31,6 +34,10 @@ switch (command) {
          handleCatFileCommand();
          break;
 
+    case Commands.Hash:
+        handleHashCommand();
+        break; 
+
     default:
         throw new Error(`Unknown command ${command}`);
 }
@@ -49,4 +56,43 @@ function handleCatFileCommand(){
     const blobContent=decompressedBuffer.subarray(nullByteIndex+1).toString();
 
     process.stdout.write(blobContent);
+}
+
+
+function handleHashCommand(){
+    const filePath= args[2];
+
+    const flag=args[1].slice(1).split("").join("");
+
+    if(! fs.existsSync(filePath)){
+        throw new Error(
+            `could not open ${args[2]}`
+        );
+    }
+    const readingContents=fs.readFileSync(filePath);
+
+    const fileLength=readingContents.length;
+
+    const blobHeader=`blob ${fileLength}\0` ;
+
+    const blob= Buffer.concat([Buffer.from(blobHeader), readingContents]);
+
+    const hash= crypto.createHash("sha1").update(blob).digest('hex');
+
+    if(flag && flag==='-w'){
+        const folder=hash.slice(0,2);
+        const file=hash.slice(2);
+
+        const completeFolderPath= path.join(process.cwd(), '.git', 'objects', folder);
+
+        if(!fs.existsSync(completeFolderPath)){
+            fs.mkdirSync(completeFolderPath);
+        }
+
+        const compressedData=zlib.deflateSync(blob);
+        fs.writeFileSync(path.join(completeFolderPath, file), compressedData);
+         
+    }
+    process.stdout.write(hash);
+
 }
