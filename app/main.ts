@@ -88,7 +88,7 @@ function handleHashCommand(){
 
     const hash= crypto.createHash("sha1").update(blob).digest('hex');
 
-    if(flag==='-w'){
+    if(flag==="-w" ){
         const folder=hash.slice(0,2);
         const file=hash.slice(2);
 
