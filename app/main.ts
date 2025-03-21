@@ -1,7 +1,8 @@
 import * as fs from 'fs';
 import { GitClient } from './git/client';
 import { CatFileComm } from './git/command/catFile';
-
+import path from 'node:path';
+import zlib from 'node:zlib';
 const args = process.argv.slice(2);
 const command = args[0];
 
@@ -37,22 +38,17 @@ switch (command) {
 }
 
 function handleCatFileCommand(){
-    const flag= args[1];
-    const commitId=args[2];
+    const folder=args[2].substring(0,2);
+    const file=args[2].substring(2);
 
-    if(!flag || !commitId){
-        console.error("Usage git-cat file error");
-        process.exit(1);
-    }
+    const completePath= path.join(process.cwd(), ".git", "objects", folder, file);
 
-    console.log({command,flag,commitId});
+    const blob=fs.readFileSync(completePath);
 
-    try{
-        const catFileCommand = new CatFileComm(flag,commitId);
-        catFileCommand.execute();
-    }
-    catch(error){
-        console.error("Error");
-        process.exit(1);
-    }
+    const decompressedBuffer=zlib.unzipSync(blob);
+
+    const nullByteIndex=decompressedBuffer.indexOf(0);
+    const blobContent=decompressedBuffer.subarray(nullByteIndex+1).toString();
+
+    process.stdout.write(blobContent);
 }
