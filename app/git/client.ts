@@ -1,5 +1,5 @@
-export class GitClient(){
-    runFn(command: { execute : ()=>void }){
-        command.execute()
-    }
-}
+// export class GitClient(){
+//     runFn(command: { execute : ()=>void }){
+//         command.execute()
+//     }
+// }
