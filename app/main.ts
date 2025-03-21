@@ -1,12 +1,10 @@
 import * as fs from 'fs';
-import { GitClient } from './git/client';
-import { CatFileComm } from './git/command/catFile';
+
 import path from 'node:path';
 import zlib from 'node:zlib';
 const args = process.argv.slice(2);
 const command = args[0];
 
-const gitClient = new GitClient();
 
 //commands
 
