@@ -61,12 +61,7 @@ function handleCatFileCommand(){
 
 function handleHashCommand(){
     const filePath= args[2];
-
-    console.log("file:", filePath);
-
     const flag=args[1];
-
-    console.log("Flag:", flag);
 
     if(!filePath){
         throw new Error(`Error: No file specified.`);
