@@ -16,8 +16,9 @@ const command = args[0];
 enum Commands {
     Init = "init",
     Cat = "cat-file",
-    Hash= "hash-object",
-    Tree= "ls-tree"
+    Hash = "hash-object",
+    Tree = "ls-tree",
+    Write = "write-tree",
 }
 
 switch (command) {
@@ -45,6 +46,9 @@ switch (command) {
         handleTreeInspectCommand();
         break;
 
+    case Commands.Write:
+        handleWriteTreeCommand();
+        break;
     default:
         throw new Error(`Unknown command ${command}`);
 }
@@ -65,6 +69,23 @@ function handleCatFileCommand(){
     process.stdout.write(blobContent);
 }
 
+function generateHash(bufferVal: Buffer, type:string, write:boolean){
+     const header = `${type} ${bufferVal.length}\0`;
+     const blobStore= Buffer.concat([Buffer.from(header), bufferVal]);
+     const hash = crypto.createHash('sha1').update(blobStore).digest('hex');
+
+     if(write===true){
+        const folder=hash.slice(0,2);
+        const file=hash.slice(2);
+
+        const folderPath=path.join(process.cwd(), ".git", "objects", folder);
+        const filePath=path.join(folderPath, file);
+
+        fs.mkdirSync(folderPath, {recursive:true});
+        fs.writeFileSync(filePath, zlib.deflateSync(blobStore));
+     }
+     return hash ;
+}
 
 function handleHashCommand(){
     const filePath= args[2];
@@ -150,4 +171,55 @@ function handleTreeInspectCommand(){
     }
 
     process.stdout.write(result)
+}
+
+
+function recursiveCreateTree(dir:string):string{
+     let treeBuffer= Buffer.alloc(0);
+     let entriesArr = [];
+     let fileEntries = fs.readdirSync(dir,{withFileTypes:true})
+     for(const entry of fileEntries){
+        if(entry.name===".git")continue;
+
+        let mode : string;
+        let hash : string;
+
+        const pathName = path.join(dir,entry.name);
+
+        if(entry.isFile()){
+            mode="100644";
+            const fileContent = fs.readFileSync(pathName);
+            hash = generateHash(fileContent, "blob", true);
+
+        }
+        else {
+            mode="40000";
+            hash= recursiveCreateTree(pathName);
+        }
+
+        entriesArr.push({
+            mode:mode,
+            hash : hash,
+            name : entry.name
+        })
+
+    }
+
+    entriesArr.sort((a,b)=>{
+        return b.mode.localeCompare(a.mode);
+    })
+
+    for (const entry of entriesArr){
+            const entryHash=Buffer.concat([Buffer.from(`${entry.mode} ${entry.name}\0`),
+                Buffer.from(entry.hash, 'hex')
+            ])
+            treeBuffer=Buffer.concat([treeBuffer, entryHash]);
+    }
+    return generateHash(treeBuffer, "tree", true);
+}
+
+function handleWriteTreeCommand(){
+     const basePath=process.cwd();
+     const treeHash = recursiveCreateTree(basePath);
+     process.stdout.write(treeHash);
 }
