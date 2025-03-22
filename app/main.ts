@@ -205,9 +205,8 @@ function recursiveCreateTree(dir:string):string{
 
     }
 
-    entriesArr.sort((a,b)=>{
-        return b.mode.localeCompare(a.mode);
-    })
+    entriesArr.sort((a, b) => a.name.localeCompare(b.name));
+
 
     for (const entry of entriesArr){
             const entryHash=Buffer.concat([Buffer.from(`${entry.mode} ${entry.name}\0`),
