@@ -127,7 +127,7 @@ function handleTreeInspectCommand(){
     // console.log(fileContents);
 
     const decompressed=zlib.inflateSync(fileContents);
-    const output=decompressed.toString();
+    const output=decompressed.toString("utf8");
 
     process.stdout.write(output)
 }
