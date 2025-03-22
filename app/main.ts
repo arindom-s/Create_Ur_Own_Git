@@ -127,7 +127,7 @@ function handleTreeInspectCommand(){
     // console.log(fileContents);
 
     const decompressed=zlib.inflateSync(fileContents);
-    const output=decompressed.toString().split("\x00")[1];
+    const output=decompressed.toString();
 
     process.stdout.write(output)
 }
