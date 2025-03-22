@@ -129,5 +129,9 @@ function handleTreeInspectCommand(){
     const decompressed=zlib.inflateSync(fileContents);
     const output=decompressed.toString("utf8");
 
-    process.stdout.write(output)
+    const nullByteIdx=output.indexOf("\0");
+    if(nullByteIdx===-1)throw new Error("Incorrect tree format");
+    const content=output.slice(nullByteIdx+1);
+
+    process.stdout.write(content)
 }
