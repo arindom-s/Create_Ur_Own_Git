@@ -133,5 +133,21 @@ function handleTreeInspectCommand(){
     if(nullByteIdx===-1)throw new Error("Incorrect tree format");
     const content=output.slice(nullByteIdx+1);
 
-    process.stdout.write(content)
+    let result= "";
+    let cursor= 0;
+
+    while(cursor < content.length){
+        const spaceIndex=content.indexOf(" ", cursor);
+        if(spaceIndex === -1)break;
+
+        const nullIndex=content.indexOf("\0",spaceIndex);
+        if(nullIndex === -1)break;
+
+        const fileName=content.slice(spaceIndex+1,nullIndex);
+        result+=fileName + "\n";
+
+        cursor = nullIndex + 21;
+    }
+
+    process.stdout.write(result)
 }
