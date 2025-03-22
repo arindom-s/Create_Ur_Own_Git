@@ -4,6 +4,8 @@ import * as crypto from "crypto"
 import path from 'node:path';
 import { blob } from 'node:stream/consumers';
 import zlib from 'node:zlib';
+
+
 const args = process.argv.slice(2);
 const command = args[0];
 
@@ -14,7 +16,8 @@ const command = args[0];
 enum Commands {
     Init = "init",
     Cat = "cat-file",
-    Hash= "hash-object"
+    Hash= "hash-object",
+    Tree= "ls-tree"
 }
 
 switch (command) {
@@ -37,6 +40,10 @@ switch (command) {
     case Commands.Hash:
         handleHashCommand();
         break; 
+
+    case Commands.Tree:
+        handleTreeInspectCommand();
+        break;
 
     default:
         throw new Error(`Unknown command ${command}`);
@@ -99,4 +106,28 @@ function handleHashCommand(){
     }
     process.stdout.write(hash);
 
+}
+
+function handleTreeInspectCommand(){
+    const flag=args[1];
+    const commitSHA=args[2];
+
+    if (!commitSHA) {
+    throw new Error("Commit SHA is missing. Usage: ls-tree <commitSHA>");
+    }
+    const folder=commitSHA.slice(0,2);
+    const file=commitSHA.slice(2);
+    const folderPath=path.join(process.cwd(),".git","objects",folder);
+    const filePath=path.join(folderPath,file);
+
+    if(!fs.existsSync(folderPath))throw new Error(`Not a valid object name ${folderPath}`);
+    if(!fs.existsSync(filePath))throw new Error(`Not a valid object name ${filePath}`);
+
+    const fileContents=fs.readFileSync(filePath);
+    // console.log(fileContents);
+
+    const decompressed=zlib.inflateSync(fileContents);
+    const output=decompressed.toString().split("\x00")[1];
+
+    process.stdout.write(output)
 }
