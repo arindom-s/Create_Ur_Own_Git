@@ -1,39 +1,22 @@
-// import path from "path";
-// import * as zlib from "zlib";
-// import * as fs from "fs";
+import path from "node:path";
+import zlib from "node:zlib";
+import * as fs from "fs"
 
-// export class CatFileComm{
-//     private flag: string;
-//     private commitId: string;
+const args = process.argv.slice(2);
+const command = args[0];
 
-//     constructor(flag:string,commitId:string){
-//         this.flag=flag;
-//         this.commitId=commitId;
-//     }
-//     execute():void{
-//         const flag=this.flag;
-//         const commitId=this.commitId;
+export function handleCatFileCommand(){
+    const folder=args[2].substring(0,2);
+    const file=args[2].substring(2);
 
-//         switch(flag){
-//             case "-p":
-//                 {
-//                     const folder=commitId.slice(0,2);
-//                     const file=commitId.slice(2);
+    const completePath= path.join(process.cwd(), ".git", "objects", folder, file);
 
-//                     const completePath= path.join(process.cwd(), ".git", "objects", folder, file);
-//                     if(!fs.existsSync(completePath)){
-//                         throw new Error(`not a valid object name ${commitId}`);
-//                     } 
+    const blob=fs.readFileSync(completePath);
 
-//                     const contents=fs.readFileSync(completePath);
-//                     const outputBuffer= zlib.inflateSync(contents);
+    const decompressedBuffer=zlib.unzipSync(blob);
 
-//                     const output=outputBuffer.toString();
+    const nullByteIndex=decompressedBuffer.indexOf(0);
+    const blobContent=decompressedBuffer.subarray(nullByteIndex+1).toString();
 
-//                     process.stdout.write(output);
-//                 }
-
-//             break;
-//         }
-//     }
-// }
+    process.stdout.write(blobContent);
+}
