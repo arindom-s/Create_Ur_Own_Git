@@ -236,7 +236,7 @@ function handleCommitCommand(args:string[]){
     const contentBuff=Buffer.concat([Buffer.from(`tree ${treeSHA}\n`), Buffer.from(`parent ${parentSHA}\n`), 
         Buffer.from(`author <Arindom@gmail.com> ${Date.now()} +0000\n`), 
         Buffer.from(`committer <Arindom@gmail.com> ${Date.now()} +0000\n\n`),
-        Buffer.from(`${commitMsg}`)
+        Buffer.from(`${commitMsg}\n`)
     ]
     );
 
